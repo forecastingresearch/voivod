@@ -1,21 +1,9 @@
-#### Setup####
-rm(list = ls())
-# replace with own dir
-yourHome <- "~/Documents/FRI"
-library(googlesheets4)
-library(dplyr)
-library(qdap)
 library(data.table)
-gs4_auth()
-
-setwd(paste0(yourHome, "/voi-vod"))
-
 library(docstring)
 library(purrr)
 library(dplyr)
 library(aggutils)
 
-#### Functions####
 punotc <- function(pc, puc, pu) {
   answer <- (pu - puc * pc) / (1 - pc)
   return(answer)
@@ -160,8 +148,6 @@ get_VoI <- function(prob_sheet_id, prob_sheet) {
 
   # get user IDs from column names
   userIds <- get_userIds(prob_sheet)
-
-  prob_sheet_og <- prob_sheet
 
   # add P(U|¬C)
   for (i in 1:length(userIds)) {
@@ -1052,86 +1038,3 @@ raw_data_to_results <- function(ids) {
 
   return(pSheet_final)
 }
-
-getProbComposite_p8 <- function(var_name) {
-  newcols <- aggregate(eval(parse(text = var_name)) ~ Camp + C_id, mean, data = p8_composite)
-  names(newcols) <- c("Camp", "C_id", paste0(var_name, "_mean"))
-  newcols2 <- aggregate(eval(parse(text = var_name)) ~ Camp + C_id, median, data = p8_composite)
-  names(newcols2) <- c("Camp", "C_id", paste0(var_name, "_median"))
-  newcols <- merge(newcols, newcols2)
-  return(newcols)
-}
-
-bindComposite_p8 <- function(composite_sheet, var_name, newcols) {
-  concerned <- newcols %>%
-    filter(Camp == "Concerned") %>%
-    select(C_id, starts_with(var_name))
-  names(concerned)[names(concerned) != "C_id"] <- paste0(names(concerned)[names(concerned) != "C_id"], "_concerned")
-  concerned$C_id <- as.character(concerned$C_id)
-  composite_sheet <- full_join(composite_sheet, concerned, by = join_by(Id == C_id))
-
-  skeptical <- newcols %>%
-    filter(Camp == "Skeptical") %>%
-    select(C_id, starts_with(var_name))
-  names(skeptical)[names(skeptical) != "C_id"] <- paste0(names(skeptical)[names(skeptical) != "C_id"], "_skeptical")
-  skeptical$C_id <- as.character(skeptical$C_id)
-  composite_sheet <- full_join(composite_sheet, skeptical, by = join_by(Id == C_id))
-
-  return(composite_sheet)
-}
-
-#### Set up to pull raw data from API ####
-# List of raw template sheets from Google Drive. To easily copy, put all template sheets in a folder, select all, copy, and paste.
-# Formatting has been made tidy here - but would be easy to use data.table
-# MUST CONVERT XLSX OR CSV FILES TO GOOGLE SHEET FORMAT
-
-urls <- c(
-  "https://drive.google.com/open?id=14Ibq5lZG-3vqt3Bp9Ulkose5-Cl1KR4kPgWtxrZlPVw&usp=drive_copy",
-  "https://drive.google.com/open?id=1fIix-v2HtZLjvWiacftXJPBGeJWEaPnp0kx3jFQ7jRs&usp=drive_copy",
-  "https://drive.google.com/open?id=1jQHHTakU51P7Rm-2Qtn20cbdlQJngK00Cwya2wkxKQA&usp=drive_copy",
-  "https://drive.google.com/open?id=1Co2Hqh_eJqMHIncBcj1TAOGnF37UoJU8v8NDdDeK8D0&usp=drive_copy",
-  "https://drive.google.com/open?id=1yvQMuJKg_OIqvmX_2ETackustuLZAlIM2izqZqoEO2g&usp=drive_copy",
-  "https://drive.google.com/open?id=131tVrrRaonp2TgTMH7DKxCsKezAGTbDlnJQudQBAXt0&usp=drive_copy",
-  "https://drive.google.com/open?id=1wMKM2vwVQ-97WVKYBEKdPPaaPTLLrdt4muWXX4Cr_k8&usp=drive_copy",
-  "https://drive.google.com/open?id=1hZvzAnMm7iADvlqGDbUVurNXjUMxQA8OWscTizp9gIw&usp=drive_copy",
-  "https://drive.google.com/open?id=18x9prrZKpNqhvkb_H_BTG2I0ADZjjHSX1TZCwGLtLSU&usp=drive_copy"
-)
-
-ids <- mgsub("https://drive.google.com/open?id=", "", urls)
-ids <- mgsub("&usp=drive_copy", "", ids)
-
-#### VoI + VoD####
-
-pSheet_final <- raw_data_to_results(ids)
-
-#### Output #####
-results_url <- "https://docs.google.com/spreadsheets/d/1A-mgu41cJZB-oM7VPP_uaJTSrfRn4bXb980_mfbcRTU/edit#gid=0" # Assumes an _existing_ Google Sheet URL
-
-# Due to issues with googlesheets4, some columns are interpreted as lists or character vectors - following block converts to numeric vector
-col_classes <- as.character(pSheet_final %>% summarise_all(class))
-for (i in 2:length(col_classes)) {
-  if (class(col_classes[i]) == "list") {
-    print("list at")
-    print(i)
-    pSheet_final[i] <- as.numeric(unlist(pSheet_final[, i]))
-  } else if (class(col_classes[i]) == "list") {
-    print("non-numeric at")
-    print(i)
-    pSheet_final[, i] <- as.numeric(pSheet_final[, i])
-  }
-}
-
-pSheet_final[sapply(pSheet_final, is.infinite)] <- NA
-
-write_sheet(pSheet_final, results_url, "Individual Results")
-
-##### Summary results#####
-# EXCLUDE SUPER MODEL FROM VOD SUMMARY
-pSheet_final_for_summary <- pSheet_final %>% select(!starts_with("S_"))
-
-summary <- summaryResults(pSheet_final_for_summary)
-write_sheet(summary, results_url, "Summary Results")
-
-# AT COMPONENT LEVEL
-summary_component <- summaryResults_component(pSheet_final_for_summary)
-write_sheet(summary_component, results_url, "Summary Results (component-level)")
