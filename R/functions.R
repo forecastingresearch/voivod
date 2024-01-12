@@ -93,6 +93,11 @@ VoI_quadratic <- function(pu, puc, pc, punotc) {
   return(answer)
 }
 
+VoI_PoM <- function(pu, puc, pc, punotc){
+  answer <- VoI_log(pu, puc, pc, punotc)/maxVOI(pu)
+  return(answer)
+}
+
 ttest_combinations <- function(data, statistic) {
   # Validate if 'statistic' is a valid column name
   if (!statistic %in% names(data)) {
