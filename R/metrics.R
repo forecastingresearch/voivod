@@ -5,6 +5,7 @@ library(dplyr)
 library(aggutils)
 
 punotc <- function(pc, puc, pu) {
+  #' @export
   answer <- (pu - puc * pc) / (1 - pc)
   return(answer)
 }
@@ -19,11 +20,14 @@ KL <- function(p, q) {
   #' @param q: Initial probability of P.
   #'
   #' @note KL divergence is not commutative.
+  #'
+  #' @export
   answer <- p * log10(p / q) + (1 - p) * log10((1 - p) / (1 - q))
   return(answer)
 }
 
 symmetricKL <- function(p, q) {
+  #' @export
   return(KL(p, q) + KL(q, p))
 }
 
@@ -32,6 +36,8 @@ maxVOI <- function(pu, fun = VoI_log) {
   #'
   #' @param fun: VOI function
   #' @param pu: P(U)
+  #'
+  #' @export
   max <- VoI_log(pu, 1 - (1E-16), pu)
   return(max)
 }
@@ -43,6 +49,8 @@ maxVOD <- function(pu_a, pu_b, fun = symmetricKL) {
   #' @param fun: Divergence measure, defaults to symmetric KL
   #' @param pu_a: P(U) for model A
   #' @param pu_b: P(U) for model B
+  #'
+  #' @export
   max <- fun(pu_a, pu_b)
   return(max)
 }
@@ -54,6 +62,8 @@ VoI_log <- function(pu, puc, pc, punotc = NA) {
   #' @param puc: P(U|c)
   #' @param pc: P(c)
   #' @param punotc: P(U|¬c)
+  #'
+  #' @export
   if (is.na(pu) || is.na(puc) || is.na(pc)) {
     return(NA)
   }
@@ -79,6 +89,7 @@ VoI_log <- function(pu, puc, pc, punotc = NA) {
 }
 
 VoI_naive <- function(pu, puc, pc, punotc = NA) {
+  #' @export
   if (is.na(pu) || is.na(puc) || is.na(pc)) {
     return(NA)
   }
@@ -99,6 +110,7 @@ VoI_naive <- function(pu, puc, pc, punotc = NA) {
 }
 
 VoI_quadratic <- function(pu, puc, pc, punotc) {
+  #' @export
   if (is.na(pu) || is.na(puc) || is.na(pc)) {
     return(NA)
   }
@@ -121,11 +133,14 @@ VoI_quadratic <- function(pu, puc, pc, punotc) {
 }
 
 VoI_PoM <- function(pu, puc, pc, punotc) {
+  #' @export
   answer <- VoI_log(pu, puc, pc, punotc) / maxVOI(pu)
   return(answer)
 }
 
 ttest_combinations <- function(data, statistic) {
+  #' @export
+
   # Validate if 'statistic' is a valid column name
   if (!statistic %in% names(data)) {
     stop("Error: The provided statistic is not a valid column name.")
@@ -158,6 +173,7 @@ ttest_combinations <- function(data, statistic) {
 ################################################################################
 
 get_userIds <- function(prob_sheet) {
+  #' @export
   userIds <- names(prob_sheet)[!grepl("ID", names(prob_sheet))]
   probs <- c("P(c)", "P(U|c)", "P(U)", "punotc", "VoI")
   userIds <- mgsub(paste0("_", probs), "", userIds)
@@ -166,6 +182,7 @@ get_userIds <- function(prob_sheet) {
 }
 
 get_VoI <- function(prob_sheet_id, prob_sheet) {
+  #' @export
   # filter out columns with formulas
   # section not needed in cases where formulas aren't present, though including shouldn't break code
   colsToTrash <- names(prob_sheet)[grep("VoI", names(prob_sheet), ignore.case = TRUE)]
@@ -222,6 +239,7 @@ get_VoI <- function(prob_sheet_id, prob_sheet) {
 }
 
 VoD_naive <- function(pu_a, pu_b, puc_a, puc_b, pc_a, pc_b, punotc_a, punotc_b) {
+  #' @export
   initDis <- abs(pu_a - pu_b)
   expDis <- abs(puc_a - puc_b) * ((pc_a + pc_b) / 2) + abs(punotc_a - punotc_b) * (((1 - pc_a) + (1 - pc_b)) / 2)
   answer <- initDis - expDis
@@ -229,6 +247,7 @@ VoD_naive <- function(pu_a, pu_b, puc_a, puc_b, pc_a, pc_b, punotc_a, punotc_b) 
 }
 
 VoD_log_mean <- function(pu_a, pu_b, puc_a, puc_b, pc_a, pc_b, punotc_a, punotc_b) {
+  #' @export
   # Initial disagreement
   initDis <- KL(pu_a, pu_b) + KL(pu_b, pu_a)
   # Expected disagreement
@@ -249,6 +268,7 @@ VoD_log_gmod <- function(pu_a, pu_b, puc_a, puc_b, pc_a, pc_b, punotc_a, punotc_
   #'
   #' @note Questions about this? Ask Molly or Ben Tereick.
   #' @note This is currently the preferred VoD formulation.
+  #' @export
 
   # Initial disagreement
   initDis <- KL(pu_a, pu_b) + KL(pu_b, pu_a)
@@ -264,6 +284,7 @@ VoD_log_alt <- function(pu_a, pu_b, puc_a, puc_b, pc_a, pc_b, punotc_a, punotc_b
   #' VoD using KL divergence (log) and geometric mean for P(c) except instead of
   #' taking GMOD of their P(c)s we compute VOI using one and then the other and
   #' average (Tegan's idea)
+  #' @export
 
   # Initial disagreement
   initDis <- KL(pu_a, pu_b) + KL(pu_b, pu_a)
@@ -280,6 +301,7 @@ VoD_log_alt <- function(pu_a, pu_b, puc_a, puc_b, pc_a, pc_b, punotc_a, punotc_b
 }
 
 VoD_quadratic_mean <- function(pu_a, pu_b, puc_a, puc_b, pc_a, pc_b, punotc_a, punotc_b) {
+  #' @export
   initDis <- (pu_a - pu_b)^2
   expDis <- ((puc_a - puc_b)^2 * (pc_a + pc_b) / 2) + ((punotc_a - punotc_b)^2 * ((1 - pc_a) + (1 - pc_b)) / 2)
   answer <- initDis - expDis
@@ -287,6 +309,7 @@ VoD_quadratic_mean <- function(pu_a, pu_b, puc_a, puc_b, pc_a, pc_b, punotc_a, p
 }
 
 VoD_quadratic_geomean <- function(pu_a, pu_b, puc_a, puc_b, pc_a, pc_b, punotc_a, punotc_b) {
+  #' @export
   initDis <- (pu_a - pu_b)^2
   expDis <- ((puc_a - puc_b)^2 * sqrt(pc_a * pc_b)) + ((punotc_a - punotc_b)^2 * sqrt((1 - pc_a) * (1 - pc_b)))
   answer <- initDis - expDis
@@ -294,18 +317,22 @@ VoD_quadratic_geomean <- function(pu_a, pu_b, puc_a, puc_b, pc_a, pc_b, punotc_a
 }
 
 mymean <- function(x) {
+  #' @export
   mean(x, na.rm = TRUE)
 }
 
 quantile50 <- function(x) {
+  #' @export
   return(quantile(x, p = 0.5, type = 1, na.rm = TRUE))
 }
 
 geomean <- function(x) {
+  #' @export
   exp(mean(log(x)))
 }
 
 getValues <- function(data, column_name) {
+  #' @export
   unique_values <- unique(data[[column_name]])
   if (length(unique_values) != 2) {
     stop("Error: The column must have exactly two unique values.")
@@ -316,6 +343,7 @@ getValues <- function(data, column_name) {
 # ==============================================================================
 
 get_VoD <- function(prob_sheet, userIDs, comparison_model_prefixes) {
+  #' @export
   pSheet_final <- tibble(ID = prob_sheet$ID)
 
   for (i in 1:length(userIDs)) {
@@ -388,6 +416,7 @@ get_VoD <- function(prob_sheet, userIDs, comparison_model_prefixes) {
 }
 
 summaryResults <- function(pSheet_final) {
+  #' @export
   summaryResults_final <- pSheet_final %>%
     select("ID", all_of(names(pSheet_final)[
       grep(paste(c("VoI", "VoD"), collapse = "|"), names(pSheet_final))
@@ -522,6 +551,7 @@ summaryResults <- function(pSheet_final) {
 }
 
 summaryResults_component <- function(pSheet_final) {
+  #' @export
   summaryResults_final <- pSheet_final %>%
     select("ID", all_of(names(pSheet_final)[
       grep(paste(c("Pc", "PUc", "PU", "punotc"), collapse = "|"), names(pSheet_final))
@@ -934,6 +964,7 @@ summaryResults_component <- function(pSheet_final) {
 }
 
 raw_data_to_results <- function(ids) {
+  #' @export
   userIDs <- c()
 
   for (i in 1:length(ids)) {

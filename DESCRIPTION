@@ -1,0 +1,20 @@
+Package: voivod
+Title: Forecasting Question Metrics
+Version: 0.0.0.9000
+Authors@R: c(
+    person(given = "Molly",
+           family = "Hickman",
+           role = c("aut", "cre"),
+           email = "molly@forecastingresearch.org",
+           comment = c(ORCID = "0009-0007-5144-0080")),
+    person(given = "Zach",
+           family = "Jacobs", 
+            email = "zach@forecastingresearch.org", 
+            role = c("aut")))
+URL: https://github.com/forecastingresearch/voi-vod
+BugReports: https://github.com/forecastingresearch/voi-vod/issues
+Description: TODO
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
