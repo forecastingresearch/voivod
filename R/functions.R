@@ -79,14 +79,41 @@ VoI_log <- function(pu, puc, pc, punotc = NA) {
 }
 
 VoI_naive <- function(pu, puc, pc, punotc = NA) {
+  if (is.na(pu) || is.na(puc) || is.na(pc)) {
+    return(NA)
+  }
   if (is.na(punotc)) {
     punotc <- (pu - puc * pc) / (1 - pc)
+  }
+  if (pu == 0) {
+    return(0)
+  }
+  if (puc == pu) {
+    return(0)
+  }
+  if (punotc < 0) {
+    return(NA) # incoherent
   }
   answer <- abs(pu - puc) * pc + abs(pu - punotc) * (1 - pc)
   return(answer)
 }
 
 VoI_quadratic <- function(pu, puc, pc, punotc) {
+  if (is.na(pu) || is.na(puc) || is.na(pc)) {
+    return(NA)
+  }
+  if (is.na(punotc)) {
+    punotc <- (pu - puc * pc) / (1 - pc)
+  }
+  if (pu == 0) {
+    return(0)
+  }
+  if (puc == pu) {
+    return(0)
+  }
+  if (punotc < 0) {
+    return(NA) # incoherent
+  }
   q_puc_pu <- (pu - puc)^2
   q_punotc_pu <- (pu - punotc)^2
   answer <- q_puc_pu * pc + q_punotc_pu * (1 - pc)
