@@ -1,6 +1,6 @@
 Package: voivod
 Title: Forecasting Question Metrics
-Version: 0.0.0.9000
+Version: 1.0.0
 Authors@R: c(
     person(given = "Molly",
            family = "Hickman",
@@ -13,7 +13,7 @@ Authors@R: c(
             role = c("aut")))
 URL: https://github.com/forecastingresearch/voi-vod
 BugReports: https://github.com/forecastingresearch/voi-vod/issues
-Description: TODO
+Description: Provides a set of statistics for evaluating forecasting questions (not forecasts, but the questions themselves, with respect to another question), i.e. assessing the cruxiness of questions. Currently the package includes several implementations each of value of information (VOI) and value of discrimination (VOD).
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
