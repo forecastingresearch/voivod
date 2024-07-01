@@ -13,8 +13,8 @@ punotc <- function(pc, puc, pu) {
 KL <- function(p, q) {
   #' Compute KL divergence between p and q.
   #'
-  #' KL divergence can be thought of as as expected excess surprise. You think the
-  #' chance of U is q, but it's actually p. How surprised are you?
+  #' KL divergence can be thought of as as expected excess surprise. You think
+  #' the chance of U is q, but it's actually p. How surprised are you?
   #'
   #' @param p: Actual probability of P given some condition.
   #' @param q: Initial probability of P.
@@ -91,6 +91,34 @@ VoI_log <- function(pu, puc, pc, punotc = NA, pc_weight = NA) {
   l_punotc_pu <- KL(punotc, pu)
   # EV(KL divergence)
   answer <- l_puc_pu * pc_weight + l_punotc_pu * (1 - pc_weight)
+  return(answer)
+}
+
+VoI_log_updatable <- function(pu, puc, pc, punotc) {
+  #' Compute expected KL divergence, but handle incoherence gracefully.
+  #'
+  #' Slightly different framing of VoI_log. For coherent world models, this
+  #' yields the same result as VoI_log, but if someone gives an incoherent
+  #' response (e.g. if both P(U|c) and P(U|¬c) are greater than P(U)), this will
+  #' treat that as information, i.e. thinking about the question made them
+  #' update on P(U). Use this if you've collected ALL FOUR VALUES from
+  #' respondents. Adapted from VoI_log by Rajashree Agrawal.
+  #'
+  #' @param pu: P(U)
+  #' @param puc: P(U|c)
+  #' @param pc: P(c)
+  #' @param punotc: P(U|¬c)
+  #'
+  #' @export
+  #' @note Adapted from VoI_log by Rajashree Agrawal.
+
+  # P(U|c)P(c) and P(U)P(c) terms
+  puc_pc <- puc * pc * log10((puc * pc) / (pu * pc)) + (1 - puc) * (pc) * log10(((1 - puc) * (pc)) / ((1 - pu) * (pc)))
+
+  # P(U|not c)P(not c) and P(U)P(not c) terms
+  punotc_pnotc <- punotc * (1 - pc) * log10((punotc * (1 - pc)) / (pu * (1 - pc))) + (1 - punotc) * (1 - pc) * log10(((1 - punotc) * (1 - pc)) / ((1 - pu) * (1 - pc)))
+
+  answer <- puc_pc + punotc_pnotc
   return(answer)
 }
 
